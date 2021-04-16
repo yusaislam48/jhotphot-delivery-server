@@ -116,6 +116,18 @@ client.connect(err => {
     })
   }); 
 
+  //delete service data
+  app.delete('/deleteService/:id', (req, res) => {
+    servicesCollection.findOneAndDelete({_id: ObjectId(req.params.id)})
+    .then(documents => res.send( documents))
+  })
+
+  //delete bookings data
+  app.delete('/deleteBookings/:id', (req, res) => {
+    bookingsCollection.findOneAndDelete({_id: ObjectId(req.params.id)})
+    .then(documents => res.send( documents))
+  })
+
 });
 
 
