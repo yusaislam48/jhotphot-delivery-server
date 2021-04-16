@@ -15,11 +15,14 @@ app.get('/', (req, res) => {
 
 
 const MongoClient = require('mongodb').MongoClient;
+const { ObjectId } = require('bson');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.2tldj.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
 
   const servicesCollection = client.db("JhotPhot-Delivery").collection("services");
+  const bookingsCollection = client.db("JhotPhot-Delivery").collection("bookings");
+  const reviewsCollection = client.db("JhotPhot-Delivery").collection("reviews");
 
   // add service
   app.post('/addService', (req, res) => {
@@ -27,6 +30,30 @@ client.connect(err => {
     console.log('adding new newService', newService)
 
     servicesCollection.insertOne(newService)
+    .then(result => {
+      console.log('inserted count', result.insertedCount);
+      res.send(result.insertedCount > 0);
+    })
+  }); 
+
+  // add booking Service
+  app.post('/bookingService', (req, res) => {
+    const bookService = req.body;
+    console.log('booking a new Service', bookService)
+
+    bookingsCollection.insertOne(bookService)
+    .then(result => {
+      console.log('inserted count', result.insertedCount);
+      res.send(result.insertedCount > 0);
+    })
+  }); 
+
+  // add review
+  app.post('/addReview', (req, res) => {
+    const review = req.body;
+    console.log('adding new newService', review)
+
+    reviewsCollection.insertOne(review)
     .then(result => {
       console.log('inserted count', result.insertedCount);
       res.send(result.insertedCount > 0);
@@ -49,6 +76,45 @@ client.connect(err => {
       res.send(documents);
     })
   });
+
+   //find review
+   app.get('/review', (req, res) => {
+    reviewsCollection.find()
+    .toArray((error, documents) => {
+      res.send(documents);
+    })
+  });
+
+  //find all booked services
+  app.get('/bookedServices', (req, res) => {
+    bookingsCollection.find()
+    .toArray((error, documents) => {
+      res.send(documents);
+    })
+  });
+  
+  //find booked services by email address
+  app.get('/bookedServices/:email', (req, res) => {
+    bookingsCollection.find({email: req.params.email})
+    .toArray((error, documents) => {
+      res.send(documents);
+    })
+  });
+
+
+  //update service status
+  app.patch('/updateService', (req, res) => {
+    const updateServiceData = req.body;
+    console.log('updating Service', updateServiceData)
+
+    bookingsCollection.updateOne(
+      { _id: ObjectId(req.body._id) },
+      { $set: {status: req.body.updateStatus}
+      })
+    .then(result => {
+      res.send(result);
+    })
+  }); 
 
 });
 
