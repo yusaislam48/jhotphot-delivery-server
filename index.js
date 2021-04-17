@@ -23,6 +23,7 @@ client.connect(err => {
   const servicesCollection = client.db("JhotPhot-Delivery").collection("services");
   const bookingsCollection = client.db("JhotPhot-Delivery").collection("bookings");
   const reviewsCollection = client.db("JhotPhot-Delivery").collection("reviews");
+  const adminsCollection = client.db("JhotPhot-Delivery").collection("admins");
 
   // add service
   app.post('/addService', (req, res) => {
@@ -59,6 +60,18 @@ client.connect(err => {
       res.send(result.insertedCount > 0);
     })
   }); 
+  
+  // add admin
+  app.post('/addAdmin', (req, res) => {
+    const newAdmin = req.body;
+    console.log('adding new newAdmin', newAdmin)
+
+    adminsCollection.insertOne(newAdmin)
+    .then(result => {
+      console.log('inserted count', result.insertedCount);
+      res.send(result.insertedCount > 0);
+    })
+  }); 
 
   //find services
   app.get('/services', (req, res) => {
@@ -85,6 +98,29 @@ client.connect(err => {
     })
   });
 
+  //find admin by email
+  app.get('/isAdmin/:email', (req, res) => {
+    adminsCollection.find({email: req.params.email})
+    .toArray((error, documents) => {
+      res.send(documents.length > 0);
+    })
+  });
+  
+  //find all admin
+  app.get('/admins', (req, res) => {
+    adminsCollection.find({})
+    .toArray((error, documents) => {
+      res.send(documents);
+    })
+  });
+
+  //delete admin by id
+  app.delete('/deleteAdmin/:id', (req, res) => {
+    adminsCollection.findOneAndDelete({_id: ObjectId(req.params.id)})
+    .then(documents => res.send( documents))
+  })
+  
+
   //find all booked services
   app.get('/bookedServices', (req, res) => {
     bookingsCollection.find()
@@ -96,6 +132,14 @@ client.connect(err => {
   //find booked services by email address
   app.get('/bookedServices/:email', (req, res) => {
     bookingsCollection.find({email: req.params.email})
+    .toArray((error, documents) => {
+      res.send(documents);
+    })
+  });
+    
+  //find booked services by ID
+  app.get('/bookedService/:id', (req, res) => {
+    bookingsCollection.find({_id: ObjectId(req.params.id)})
     .toArray((error, documents) => {
       res.send(documents);
     })
